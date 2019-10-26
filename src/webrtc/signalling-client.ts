@@ -17,7 +17,7 @@ export class SignallingClient {
 
     connect() {
         let self = this;
-        let socket = this.socket = new WebSocket("ws://smallvm.westeurope.cloudapp.azure.com:33713");
+        let socket = this.socket = new WebSocket("wss://smallvm.westeurope.cloudapp.azure.com:33713");
         socket.onopen = function () {
             socket.send(JSON.stringify({ type: "connected", id: self.localId }));
         };
