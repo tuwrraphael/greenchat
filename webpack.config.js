@@ -16,10 +16,10 @@ module.exports = {
         extensions: ['.tsx', '.ts', '.js'],
     },
     output: {
-        filename: 'bundle.js',
-        path: path.resolve(__dirname, 'dist'),
+        path: path.resolve(__dirname, 'assets'),
+        publicPath: '/assets/'
     },
-    plugins: [new HtmlWebpackPlugin()],
+    plugins: [new HtmlWebpackPlugin({ filename: "../index.html" })],
     devServer: {
         contentBase: path.join(__dirname, 'dist'),
         compress: true,
