@@ -17,7 +17,7 @@ export class SignallingClient {
 
     connect() {
         let self = this;
-        let socket = this.socket = new WebSocket("wss://hub.greenchat.me:33713");
+        let socket = this.socket = new WebSocket("wss://hub.greenchat.me");
         socket.onopen = function () {
             socket.send(JSON.stringify({ type: "connected", id: self.localId }));
         };
