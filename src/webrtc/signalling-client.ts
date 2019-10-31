@@ -1,3 +1,5 @@
+import { signallingServer } from "./config";
+
 export interface SignallingHandler {
     setClient(client: SignallingClient): void;
     addRemoteCandidate(connectionId: string, candidate: RTCIceCandidate): void;
@@ -17,7 +19,7 @@ export class SignallingClient {
 
     connect() {
         let self = this;
-        let socket = this.socket = new WebSocket("wss://hub.greenchat.me");
+        let socket = this.socket = new WebSocket(signallingServer);
         socket.onopen = function () {
             socket.send(JSON.stringify({ type: "connected", id: self.localId }));
         };

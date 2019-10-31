@@ -1,6 +1,7 @@
 import { SignallingHandler, SignallingClient } from "./signalling-client";
 import { uuid } from "../uuid";
 import { PeerHandler } from "./peer-handler";
+import { iceConfig } from "./config";
 
 interface Connection {
     rtcConnection: RTCPeerConnection,
@@ -49,7 +50,7 @@ export class DefaultSignallingHandler implements SignallingHandler {
         }
         let id = uuid();
         let self = this;
-        let rtcConnection = new RTCPeerConnection({ iceServers: [{ urls: ["stun:stun.l.google.com:19302"] }] })
+        let rtcConnection = new RTCPeerConnection({ ...iceConfig })
         let connection = this.connections[id] = {
             rtcConnection,
             offeringPeer: this.localId,
@@ -78,7 +79,7 @@ export class DefaultSignallingHandler implements SignallingHandler {
 
     acceptOffer(connectionId: string, offeringPeer: string, offer: RTCSessionDescriptionInit): void {
         let self = this;
-        let rtcConnection = new RTCPeerConnection({ iceServers: [{ urls: ["stun:stun.l.google.com:19302"] }] })
+        let rtcConnection = new RTCPeerConnection({ ...iceConfig })
         let connection = this.connections[connectionId] = {
             rtcConnection,
             offeringPeer: offeringPeer,
