@@ -58,10 +58,12 @@ export class DefaultSignallingHandler implements SignallingHandler {
             channel: rtcConnection.createDataChannel("sendChannel")
         };
         connection.channel.onmessage = function (e) {
-            self.peerHandler.onMessage(peerId, e.data, connection.channel);
+            self.peerHandler.onMessage(peerId, e.data, connection.channel)
+                .catch(d => console.error(d));
         }
         connection.channel.onopen = function () {
-            self.peerHandler.onPeerReady(peerId, connection.channel);
+            self.peerHandler.onPeerReady(peerId, connection.channel)
+                .catch(d => console.error(d));
         };
         connection.channel.onclose = function () {
 
@@ -89,10 +91,12 @@ export class DefaultSignallingHandler implements SignallingHandler {
         rtcConnection.ondatachannel = function (e) {
             let sendChannel = connection.channel = e.channel;
             sendChannel.onmessage = function (e) {
-                self.peerHandler.onMessage(offeringPeer, e.data, sendChannel);
+                self.peerHandler.onMessage(offeringPeer, e.data, sendChannel)
+                    .catch(d => console.error(d));
             }
             sendChannel.onopen = function () {
-                self.peerHandler.onPeerReady(offeringPeer, sendChannel);
+                self.peerHandler.onPeerReady(offeringPeer, sendChannel)
+                    .catch(d => console.error(d));
             };
             sendChannel.onclose = function () {
             };

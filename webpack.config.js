@@ -3,6 +3,7 @@ const path = require('path');
 
 module.exports = {
     entry: './src/index.ts',
+    devtool: "source-map",
     module: {
         rules: [
             {
@@ -20,8 +21,9 @@ module.exports = {
         publicPath: '/assets/'
     },
     plugins: [new HtmlWebpackPlugin({ filename: "../index.html" })],
+    mode:"production",
     devServer: {
-        contentBase: path.join(__dirname, 'dist'),
+        contentBase: path.join(__dirname, './'),
         compress: true,
         port: 9000
     }
