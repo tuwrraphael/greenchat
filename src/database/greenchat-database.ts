@@ -118,7 +118,7 @@ export class GreenchatDatabase extends Dexie {
         let m = {
             id: uuid(),
             sourceId: clientId,
-            content: { msg, timestamp: new Date() },
+            content: { msg, timestamp: +new Date() },
             timestamp: newTs
         };
         await this.stateMembers.put(m);
@@ -131,7 +131,7 @@ export class GreenchatDatabase extends Dexie {
             return {
                 from: v.sourceId,
                 m: v.content.msg || v.content,
-                ts: v.content.timestamp || 0
+                ts: +v.content.timestamp || 0
             }
         }).sort((a, b) => b.ts - a.ts);
     }
