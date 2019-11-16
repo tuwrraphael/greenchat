@@ -7,21 +7,35 @@ module.exports = {
     module: {
         rules: [
             {
-                test: /\.tsx?$/,
-                use: 'ts-loader',
-                exclude: /node_modules/,
+                test: /\.(ts|js)x?$/,
+                loader: 'babel-loader',
+                exclude: /node_modules/
             },
+            {
+                test: /\.scss$/,
+                use: [
+                    'raw-loader',
+                    {
+                        loader: 'sass-loader',
+                        options: {
+                            sassOptions: {
+                                includePaths: [path.resolve(__dirname, 'node_modules')]
+                            }
+                        }
+                    }
+                ]
+            }
         ],
     },
     resolve: {
-        extensions: ['.tsx', '.ts', '.js'],
+        extensions: ['.tsx', '.ts', '.js', ".scss"],
     },
     output: {
         path: path.resolve(__dirname, 'assets'),
         publicPath: '/assets/'
     },
     plugins: [new HtmlWebpackPlugin({ filename: "../index.html" })],
-    mode:"production",
+    mode: "production",
     devServer: {
         contentBase: path.join(__dirname, './'),
         compress: true,
