@@ -21,22 +21,26 @@ export class GreenchatDatabase extends Dexie {
         this.userInfo = this.table("userInfo");
     }
 
-    async getOrCreateUser() {
+    async createUser(newUserInfo: IUserInfo) {
+        await this.open();
+        let userInfo = {
+            clientId: newUserInfo.address,
+            encryptionKey: newUserInfo.encryptionKey,
+            signingKey: newUserInfo.signingKey,
+            id: "local"
+        };
+        this.userInfo.put(userInfo);
+    }
+
+    async getUser() {
         await this.open();
         let userInfo = await this.userInfo.get("local");
         if (null == userInfo) {
-            let newUserInfo = await generateIdentity();
-            userInfo = {
-                clientId: newUserInfo.clientId,
-                encryptionKey: newUserInfo.encryptionKey,
-                signingKey: newUserInfo.signingKey,
-                id: "local"
-            };
-            this.userInfo.put(userInfo);
+            return null;
         }
         return <IUserInfo>{
             encryptionKey: userInfo.encryptionKey,
-            clientId: userInfo.clientId,
+            address: userInfo.clientId,
             signingKey: userInfo.signingKey
         };
     }

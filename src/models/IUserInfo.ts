@@ -1,5 +1,5 @@
 export interface IUserInfo {
-    clientId: string;
+    address: string;
     encryptionKey: CryptoKeyPair;
     signingKey: CryptoKeyPair;
 }

@@ -1,5 +1,5 @@
-import { uuid } from "../uuid";
 import { IUserInfo } from "../models/IUserInfo";
+import { generateUserAddress } from "./generate-user-address";
 
 export async function generateIdentity() {
     const encryptionKey = await crypto.subtle.generateKey({
@@ -14,5 +14,5 @@ export async function generateIdentity() {
         publicExponent: new Uint8Array([1, 0, 1]),
         hash: "SHA-256",
     }, false, ["sign", "verify"]);
-    return <IUserInfo>{ encryptionKey, signingKey, clientId: uuid() };
+    return <IUserInfo>{ encryptionKey, signingKey, address: await generateUserAddress(signingKey) };
 }

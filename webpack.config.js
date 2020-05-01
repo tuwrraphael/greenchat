@@ -17,13 +17,12 @@ module.exports = {
         extensions: ['.tsx', '.ts', '.js'],
     },
     output: {
-        path: path.resolve(__dirname, 'assets'),
-        publicPath: '/assets/'
+        path: path.resolve(__dirname, 'dist'),
     },
-    plugins: [new HtmlWebpackPlugin({ filename: "../index.html" })],
-    mode:"production",
+    plugins: [new HtmlWebpackPlugin({ template: "index.html" })],
+    mode: "development",
     devServer: {
-        contentBase: path.join(__dirname, './'),
+        contentBase: path.join(__dirname, 'dist'),
         compress: true,
         port: 9000
     }
