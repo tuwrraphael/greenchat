@@ -4,12 +4,12 @@ import { Action } from "./Action";
 
 export interface Subscription {
     call(a: State): void;
-    area: keyof State;
+    area: keyof State | "";
 }
 
 export interface ReducerSubscription {
     reducer: Reducer<any, any>;
-    area: keyof State;
+    area: keyof State | null;
 }
 
 export class Store {
@@ -28,7 +28,7 @@ export class Store {
             this.subscriptions.splice(this.subscriptions.indexOf(sub), 1);
         };
     }
-    addReducer<K extends keyof State>(area: K, reducer: Reducer<State[K], any>) {
+    addReducer<K extends keyof State>(area: K | null, reducer: Reducer<State[K] | State, any>) {
         this.reducerSubscriptions.push({ area, reducer });
     }
     dispatch(action: Action) {

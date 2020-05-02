@@ -1,4 +1,4 @@
-import { SignallingHandler, SignallingClient } from "./signalling-client";
+import { SignallingHandler, SignallingClient } from "./signalling-client_old";
 import { uuid } from "../utils/uuid";
 import { PeerHandler } from "./peer-handler";
 import { iceConfig } from "./config";

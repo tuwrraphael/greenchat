@@ -1,4 +1,4 @@
-import { SignallingClient } from "./webrtc/signalling-client";
+import { SignallingClient } from "./webrtc/signalling-client_old";
 import { DefaultSignallingHandler } from "./webrtc/default-signalling-handler";
 import { uuid } from "./utils/uuid";
 import { PeerHandler } from "./webrtc/peer-handler";
