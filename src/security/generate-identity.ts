@@ -1,4 +1,4 @@
-import { uuid } from "../uuid";
+import { uuid } from "../utils/uuid";
 import { IUserInfo } from "../models/IUserInfo";
 
 export async function generateIdentity() {

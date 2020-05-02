@@ -11,6 +11,15 @@ module.exports = {
                 use: 'ts-loader',
                 exclude: /node_modules/,
             },
+            {
+                test: /\.html$/,
+                use: [{
+                    loader: "html-loader",
+                    options: {
+                        minimize: true
+                    }
+                }]
+            }
         ],
     },
     resolve: {
@@ -21,7 +30,7 @@ module.exports = {
         publicPath: '/assets/'
     },
     plugins: [new HtmlWebpackPlugin({ filename: "../index.html" })],
-    mode:"production",
+    mode: "production",
     devServer: {
         contentBase: path.join(__dirname, './'),
         compress: true,

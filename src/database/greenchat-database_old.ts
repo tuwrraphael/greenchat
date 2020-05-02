@@ -3,7 +3,7 @@ import { IUserInfo } from "../models/IUserInfo";
 import { generateIdentity } from "../security/generate-identity";
 import { Source } from "../models/Source";
 import { RemoteUpdate } from "../models/RemoteUpdate";
-import { uuid } from "../uuid";
+import { uuid } from "../utils/uuid";
 
 export class GreenchatDatabase extends Dexie {
     stateMembers: Dexie.Table<IStateMember, string>;
