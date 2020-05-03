@@ -26,10 +26,10 @@ module.exports = {
         extensions: ['.tsx', '.ts', '.js'],
     },
     output: {
-        path: path.resolve(__dirname, 'assets'),
-        publicPath: '/assets/'
+        path: path.resolve(__dirname, 'dist'),
+        publicPath: '/dist/'
     },
-    plugins: [new HtmlWebpackPlugin({ filename: "../index.html" })],
+    plugins: [new HtmlWebpackPlugin({ base: "/", title: "Greenchat" })],
     mode: "production",
     devServer: {
         contentBase: path.join(__dirname, './'),
