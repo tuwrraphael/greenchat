@@ -17,11 +17,7 @@ export class LinkDevice extends HTMLElement {
 
     constructor() {
         super();
-        const shadow = this.attachShadow({ mode: 'open' });
-        let div = document.createElement("div");
-        div.innerHTML = template;
-
-        shadow.appendChild(div);
+        this.innerHTML = template;
     }
 
     addServices(serviceLocator: ServiceLocator) {
@@ -30,12 +26,13 @@ export class LinkDevice extends HTMLElement {
     }
 
     connectedCallback() {
-        this.invitePane = this.shadowRoot.querySelector("#invite-code-pane");
-        this.processStartPane = this.shadowRoot.querySelector("#process-start-pane");
-        this.generateButton = this.shadowRoot.querySelector("#generate");
-        this.pasteButton = this.shadowRoot.querySelector("#redeem-code");
-        this.invCode = this.shadowRoot.querySelector("#inv-code");
-        this.pastedCode = this.shadowRoot.querySelector("#pasted-code");
+        let element = this;
+        this.invitePane = element.querySelector("#invite-code-pane");
+        this.processStartPane = element.querySelector("#process-start-pane");
+        this.generateButton = element.querySelector("#generate");
+        this.pasteButton = element.querySelector("#redeem-code");
+        this.invCode = element.querySelector("#inv-code");
+        this.pastedCode = element.querySelector("#pasted-code");
         this.invitePane.style.display = "none";
 
         this.generateButton.addEventListener("click", async () => {

@@ -4,10 +4,7 @@ export class FirstTimeInit extends HTMLElement {
 
     constructor() {
         super();
-        const shadow = this.attachShadow({ mode: 'open' });
-        let div = document.createElement("div");
-        div.innerHTML = template;
-        shadow.appendChild(div);
+        this.innerHTML = template;
     }
 
     connectedCallback() {

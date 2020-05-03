@@ -14,10 +14,7 @@ export class Home extends HTMLElement {
 
     constructor() {
         super();
-        const shadow = this.attachShadow({ mode: 'open' });
-        let div = document.createElement("div");
-        div.innerHTML = template;
-        shadow.appendChild(div);
+        this.innerHTML = template;
     }
 
     addServices(serviceLocator: ServiceLocator) {
@@ -27,13 +24,14 @@ export class Home extends HTMLElement {
     }
 
     connectedCallback() {
-        this.list = this.shadowRoot.querySelector("#notes-list");
-        this.noteContent = this.shadowRoot.querySelector("#note-content");
-        this.shadowRoot.querySelector("#addNoteBtn").addEventListener("click", () => {
+        let element = this;
+        this.list = element.querySelector("#notes-list");
+        this.noteContent = element.querySelector("#note-content");
+        element.querySelector("#addNoteBtn").addEventListener("click", () => {
             this.notesActionCreator.takeNote(this.noteContent.value);
             this.noteContent.value = "";
         })
-        this.shadowRoot.querySelectorAll("a").forEach(e => {
+        element.querySelectorAll("a").forEach(e => {
             e.addEventListener("click", ev => {
                 ev.preventDefault();
                 this.routingActionCreator.navigate(e.getAttribute("href"))
