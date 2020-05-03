@@ -27,7 +27,7 @@ module.exports = {
     },
     output: {
         path: path.resolve(__dirname, 'dist'),
-        publicPath: '/dist/'
+        filename: '[contenthash].bundle.js'
     },
     plugins: [new HtmlWebpackPlugin({ base: "/", title: "Greenchat" })],
     mode: "production",
