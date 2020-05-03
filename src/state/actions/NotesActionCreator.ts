@@ -23,7 +23,7 @@ export class NotesActionCreator {
 
     }
     async takeNote(content: string) {
-        let appendOnlyLog = await this.localAppendOnlyLogService.get();
+        let appendOnlyLog = await this.localAppendOnlyLogService.get("local");
         await appendOnlyLog.addMessage(this.messageEncoder.encodeNote(content));
         this.store.dispatch(new TakeNote(content));
     }
