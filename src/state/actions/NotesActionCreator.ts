@@ -1,5 +1,5 @@
 import { Store } from "../Store";
-import { Action } from "../Action";
+import { Action } from "../lib/Action";
 import { LocalAppendOnlyLogService } from "../../append-only-log/LocalAppendOnlyLogService";
 import { MessageEncoder } from "../../message-encoding/MessageEncoder";
 

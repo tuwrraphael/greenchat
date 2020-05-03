@@ -1,5 +1,5 @@
 import { Store } from "../Store";
-import { Action } from "../Action";
+import { Action } from "../lib/Action";
 import { SignallingClient } from "../../webrtc/SignallingClient";
 
 export enum SignallingActionNames {

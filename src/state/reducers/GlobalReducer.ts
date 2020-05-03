@@ -1,4 +1,4 @@
-import { Reducer } from "../Reducer";
+import { Reducer } from "../lib/Reducer";
 import { State } from "../State";
 import { SignallingActions, SignallingActionNames } from "../actions/SignallingActionCreator";
 

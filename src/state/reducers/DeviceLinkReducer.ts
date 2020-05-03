@@ -1,4 +1,4 @@
-import { Reducer } from "../Reducer";
+import { Reducer } from "../lib/Reducer";
 import { DeviceLinkState } from "../State";
 import { DeviceLinkActions, DeviceLinkActionNames } from "../actions/DeviceLinkActionCreator";
 import { DeviceLinkStatus } from "../../models/DeviceLinkStatus";

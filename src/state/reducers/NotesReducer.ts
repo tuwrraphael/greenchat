@@ -1,4 +1,4 @@
-import { Reducer } from "../Reducer";
+import { Reducer } from "../lib/Reducer";
 import { NotesSubState } from "../State";
 import { NotesActions, NotesActionNames } from "../actions/NotesActionCreator";
 
