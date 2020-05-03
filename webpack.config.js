@@ -30,7 +30,7 @@ module.exports = {
         filename: '[contenthash].bundle.js'
     },
     plugins: [new HtmlWebpackPlugin({ base: "/", title: "Greenchat" })],
-    mode: "production",
+    mode: "development",
     devServer: {
         contentBase: path.join(__dirname, './'),
         compress: true,

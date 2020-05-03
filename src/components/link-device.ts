@@ -3,6 +3,7 @@ import { Store } from "../state/Store";
 import { ServiceLocator } from "../ServiceLocator";
 import { DeviceLinkActionCreator } from "../state/actions/DeviceLinkActionCreator";
 import { DeviceLinkStatus } from "../models/DeviceLinkStatus";
+import { State } from "../state/State";
 
 export class LinkDevice extends HTMLElement {
     store: Store;
@@ -43,11 +44,14 @@ export class LinkDevice extends HTMLElement {
             await this.deviceLinkActionCreator.linkDevice(this.pastedCode.value);
         });
 
-        this.subscription = this.store.subscribe("deviceLink", state => {
-            this.invitePane.style.display = state.deviceLink.inviteCode ? "block" : "none";
+        this.subscription = this.store.subscribe("deviceLink", state => this.applyStoreState(state));
+        this.applyStoreState(this.store.state);
+    }
+
+    private applyStoreState(state : State) {
+        this.invitePane.style.display = state.deviceLink.inviteCode ? "block" : "none";
             this.invCode.innerText = state.deviceLink.inviteCode;
             this.processStartPane.style.display = state.deviceLink.deviceLinkStatus == DeviceLinkStatus.Uninitialized ? "block" : "none";
-        });
     }
 
     disconnectedCallback() {

@@ -3,6 +3,7 @@ import { Store } from "../state/Store";
 import { NotesActionCreator } from "../state/actions/NotesActionCreator";
 import { ServiceLocator } from "../ServiceLocator";
 import { RoutingActionCreator } from "../state/actions/RoutingActionCreator";
+import { State } from "../state/State";
 
 export class Home extends HTMLElement {
     store: Store;
@@ -37,14 +38,17 @@ export class Home extends HTMLElement {
                 this.routingActionCreator.navigate(e.getAttribute("href"))
             });
         });
-        this.subscription = this.store.subscribe("notes", state => {
-            this.list.innerHTML = "";
-            for (let note of state.notes.notes) {
-                let li = document.createElement("li");
-                li.innerText = note;
-                this.list.appendChild(li);
-            }
-        });
+        this.subscription = this.store.subscribe("notes", state => this.applyStoreState(state));
+        this.applyStoreState(this.store.state);
+    }
+
+    private applyStoreState(state: State) {
+        this.list.innerHTML = "";
+        for (let note of state.notes.notes) {
+            let li = document.createElement("li");
+            li.innerText = note;
+            this.list.appendChild(li);
+        }
     }
 
     disconnectedCallback() {

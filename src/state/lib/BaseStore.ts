@@ -12,7 +12,7 @@ interface ReducerSubscription<TState> {
 }
 
 export class BaseStore<TState> {
-    private state: TState;
+    public state: TState;
     private subscriptions: Subscription<TState>[];
     private reducerSubscriptions: ReducerSubscription<TState>[];
     constructor(initState: () => TState) {
