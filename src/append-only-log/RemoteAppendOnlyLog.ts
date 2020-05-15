@@ -35,4 +35,7 @@ export class RemoteAppendOnlyLog {
         }
         await this.persistMessages(verifiedMessages);
     }
+    getAll(): AsyncGenerator<LogMessage, void, unknown> {
+        return this.persistence.getAll(this.logId);
+    }
 }

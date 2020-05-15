@@ -2,7 +2,6 @@ import "idb/with-async-ittr";
 import { openDB, IDBPDatabase } from "idb";
 import { LogPersistence } from "../append-only-log/LogPersistence";
 import { LogMessage } from "../append-only-log/LogMessage";
-import { uuid } from "../utils/uuid";
 import { AppendOnlyLogMetadata } from "../append-only-log/AppendOnlyLogMetadata";
 
 const AppendOnlyLogMessages = "AppendOnlyLogMessages";
@@ -20,34 +19,38 @@ export class GreenchatDatabase implements LogPersistence {
     }
     async getLastMessage(logId: string): Promise<LogMessage> {
         let log = await this.db.get(AppendOnlyLogs, logId);
-        if (null == log.top) {
+        if (null == log.last) {
             return null;
         }
-        let msgData = await this.db.get(AppendOnlyLogMessages, log.top);
-        return new LogMessage(msgData.content, msgData.hash, msgData.last, msgData.signature, msgData.timestamp, msgData.sequence);
+        let msgData = await this.db.get(AppendOnlyLogMessages, log.last);
+        return new LogMessage(msgData.content, msgData.hash, msgData.previous, msgData.signature, msgData.timestamp, msgData.sequence);
     }
     async storeMessages(logId: string, messages: LogMessage[]): Promise<boolean> {
         let log = await this.db.get(AppendOnlyLogs, logId);
         const tx = this.db.transaction(AppendOnlyLogMessages, "readwrite");
-        let { top } = log;
+        let { last } = log;
         let sequence = null;
         for (let m of messages) {
-            let storeObj = { ...m, logId, id: uuid(), before: top };
+            let storeObj = { ...m, logId, previous: last };
             await tx.store.add(storeObj);
-            top = storeObj.id;
+            last = storeObj.hash;
             sequence = storeObj.sequence;
         }
         await tx.done;
-        log.top = top;
+        log.last = last;
         log.sequence = sequence;
         await this.db.put(AppendOnlyLogs, log);
         return true;
     }
     db: IDBPDatabase<unknown>;
     async initialize() {
-        this.db = await openDB("greenchat-dbv2", 1, {
-            upgrade(db) {
-                let store = db.createObjectStore(AppendOnlyLogMessages, { keyPath: "id" });
+        this.db = await openDB("greenchat-dbv2", 2, {
+            upgrade(db, oldVersion: number, newVersion: number) {
+                if ([1, 2].indexOf(oldVersion) > -1 && [2, 3].indexOf(newVersion) > -1) {
+                    db.deleteObjectStore(AppendOnlyLogMessages);
+                    db.deleteObjectStore(AppendOnlyLogs);
+                }
+                let store = db.createObjectStore(AppendOnlyLogMessages, { keyPath: ["logId", "hash"] });
                 store.createIndex("logId", "logId");
                 db.createObjectStore(AppendOnlyLogs, { keyPath: "id" });
             },
@@ -57,13 +60,13 @@ export class GreenchatDatabase implements LogPersistence {
         return !! await this.db.get(AppendOnlyLogs, logId);
     }
     async createAppendOnlyLog(logId: string, publicKey: CryptoKey, privateKey: CryptoKey) {
-        await this.db.add(AppendOnlyLogs, { id: logId, privateKey, publicKey, sequence: 0, top: null });
+        await this.db.add(AppendOnlyLogs, { id: logId, privateKey, publicKey, sequence: 0, last: null });
     }
     async addMessage(logId: string, m: LogMessage) {
         let log = await this.db.get(AppendOnlyLogs, logId);
-        let storeObj = { ...m, logId, id: uuid(), before: log.top };
+        let storeObj = { ...m, logId };
         await this.db.add(AppendOnlyLogMessages, storeObj);
-        log.top = storeObj.id;
+        log.last = storeObj.hash;
         log.sequence = storeObj.sequence;
         await this.db.put(AppendOnlyLogs, log);
     }
@@ -72,7 +75,7 @@ export class GreenchatDatabase implements LogPersistence {
         const index = this.db.transaction(AppendOnlyLogMessages).store.index('logId');
         for await (const cursor of index.iterate(logId)) {
             let item = cursor.value;
-            yield new LogMessage(item.content, item.hash, item.last, item.signature, item.timestamp,
+            yield new LogMessage(item.content, item.hash, item.previous, item.signature, item.timestamp,
                 item.sequence);
         }
     }

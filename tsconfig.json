@@ -1,12 +1,23 @@
 {
+  "compileOnSave": false,
   "compilerOptions": {
+    "lib": [
+      "dom",
+      "esnext"
+    ],
     "outDir": "./dist/",
     "noImplicitAny": true,
-    "module": "es6",
-    "target": "es6",
-    "jsx": "react",
-    "allowJs": true,    
+    "skipLibCheck": true,
+    "module": "esnext",
+    "target": "esnext",
+    "allowJs": true,
     "moduleResolution": "node",
-    "sourceMap": true
+    "sourceMap": true,
+    "types": [
+      "@types/jasmine",
+      "@types/node",
+      "@types/webpack-env"
+    ],
+    "allowSyntheticDefaultImports": true
   },
 }
