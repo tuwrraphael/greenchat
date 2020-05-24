@@ -1,14 +1,11 @@
 import { iceConfig } from "./config";
 import { SignallingClient } from "./SignallingClient";
-import { ChannelInitialization } from "./ChannelInitialization";
-import { DataChannelOpenedEventInit } from "./DataChannelOpenedEventInit";
-export class PeerConnectionHandler extends EventTarget {
+export class PeerConnectionHandler {
     private rtcConnection: RTCPeerConnection;
     private resolveInit: () => void;
     private resolveConnectionRequest: (offer: RTCSessionDescriptionInit) => void;
     private rejectConnectionRequest: (reason: string) => void;
     constructor(public connectionId: string, private signallingClient: SignallingClient) {
-        super();
     }
     addIceCandidate(candidate: RTCIceCandidateInit) {
         this.rtcConnection.addIceCandidate(candidate);
@@ -25,13 +22,9 @@ export class PeerConnectionHandler extends EventTarget {
     rejectConenctionRequest(reason: string) {
         this.rejectConnectionRequest(reason);
     }
-    private onDataChannelOpen(c: RTCDataChannel) {
-        this.dispatchEvent(new Event("datachannelopen", <DataChannelOpenedEventInit>{ channel: c }));
-    }
-    initiateChannel(timeout: number): Promise<unknown> {
+    initiateChannel(timeout: number): Promise<RTCDataChannel> {
         this.rtcConnection = new RTCPeerConnection({ ...iceConfig });
         let dataChannel = this.rtcConnection.createDataChannel("sendChannel");
-        dataChannel.onopen = () => this.onDataChannelOpen(dataChannel);
         this.rtcConnection.onicecandidate = ({ candidate }) => {
             if (candidate) {
                 this.signallingClient.publishIceCandidate(this.connectionId, candidate);
@@ -41,11 +34,11 @@ export class PeerConnectionHandler extends EventTarget {
             this.signallingClient.initiateConnection(this.connectionId, timeout, offer);
             this.rtcConnection.setLocalDescription(offer);
         });
-        let promise = new Promise<ChannelInitialization>((resolve, reject) => {
+        let promise = new Promise<RTCDataChannel>((resolve, reject) => {
             let resolved = false;
             this.resolveInit = () => {
                 resolved = true;
-                resolve();
+                resolve(dataChannel);
             };
             setTimeout(() => {
                 if (!resolved) {
@@ -56,30 +49,34 @@ export class PeerConnectionHandler extends EventTarget {
         });
         return promise;
     }
-    openChannel(): Promise<unknown> {
+    openChannel(): Promise<RTCDataChannel> {
         this.rtcConnection = new RTCPeerConnection({ ...iceConfig });
         this.rtcConnection.onicecandidate = ({ candidate }) => {
             if (candidate) {
                 this.signallingClient.publishIceCandidate(this.connectionId, candidate);
             }
         };
-        this.rtcConnection.ondatachannel = e => {
-            let datachannel = e.channel;
-            datachannel.onopen = () => {
-                this.onDataChannelOpen(datachannel);
-            };
-        };
-        this.signallingClient.requestConnection(this.connectionId);
-        let promise = new Promise<unknown>((resolve, reject) => {
-            let resolved = false;
+        let resolveConnectionRequestPromise = new Promise<unknown>(resolve => {
             this.resolveConnectionRequest = (offer: RTCSessionDescriptionInit) => {
                 this.rtcConnection.setRemoteDescription(offer).then(() => {
                     this.rtcConnection.createAnswer().then(answer => {
                         this.rtcConnection.setLocalDescription(answer);
                         this.signallingClient.sendAnswer(this.connectionId, answer);
-                        resolved = true;
                         resolve();
                     });
+                });
+            };
+        });
+        this.signallingClient.requestConnection(this.connectionId);
+        let promise = new Promise<RTCDataChannel>((resolve, reject) => {
+            let resolved = false;
+            this.rtcConnection.ondatachannel = e => {
+                let datachannel = e.channel;
+                resolveConnectionRequestPromise.then(() => {
+                    if (!resolved) {
+                        resolved = true;
+                        resolve(datachannel);
+                    }
                 });
             };
             this.rejectConenctionRequest = (msg: string) => {

@@ -15,6 +15,7 @@ import { SignallingActionCreator } from "./state/actions/SignallingActionCreator
 import { DeviceLinkActionCreator } from "./state/actions/DeviceLinkActionCreator";
 import { DeviceLinkStatus } from "./models/DeviceLinkStatus";
 import { DeviceLinkReducer } from "./state/reducers/DeviceLinkReducer";
+import { DeviceLinkService } from "./device-linking/DeviceLinkService";
 
 async function run() {
     const db = new GreenchatDatabase();
@@ -37,12 +38,13 @@ async function run() {
 
     const messageEncoder = new MessageEncoder();
     const localAppendOnlyLogService = new LocalAppendOnlyLogService(db, messageEncoder);
+    const deviceLinkService = new DeviceLinkService(signallingClient);
 
     const routingActionCreator = new RoutingActionCreator(router);
     const initializationActionCreator = new InitializationActionCreator(store, localAppendOnlyLogService, routingActionCreator);
     const notesActionCreator = new NotesActionCreator(store, localAppendOnlyLogService, messageEncoder);
     const signallingActionCreator = new SignallingActionCreator(store, signallingClient);
-    const deviceLinkActionCreator = new DeviceLinkActionCreator(store, signallingClient);
+    const deviceLinkActionCreator = new DeviceLinkActionCreator(store, deviceLinkService);
 
     const serviceLocator = new ServiceLocator(store,
         notesActionCreator,
@@ -58,4 +60,3 @@ async function run() {
 }
 
 run().catch(err => console.error(err));
-

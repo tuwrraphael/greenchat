@@ -63,18 +63,20 @@ export class SignallingClient extends EventTarget {
     async initializeDeviceLinkChannel(timeout: number): Promise<ChannelInitialization> {
         let handler = new PeerConnectionHandler(uuid(), this);
         this.handlers.push(handler);
-        await handler.initiateChannel(timeout);
+        let rtcDataChannel = await handler.initiateChannel(timeout);
         return {
-            connectionHandler: handler
+            connectionHandler: handler,
+            rtcDataChannel
         };
     }
 
     async openDeviceLinkChannel(connectionId: string): Promise<ChannelInitialization> {
         let handler = new PeerConnectionHandler(connectionId, this);
         this.handlers.push(handler);
-        await handler.openChannel();
+        let rtcDataChannel = await handler.openChannel();
         return {
-            connectionHandler: handler
+            connectionHandler: handler,
+            rtcDataChannel: rtcDataChannel
         };
     }
     requestConnection(connectionId: string) {

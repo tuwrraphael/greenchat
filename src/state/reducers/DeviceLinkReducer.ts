@@ -9,7 +9,8 @@ export class DeviceLinkReducer implements Reducer<DeviceLinkState, DeviceLinkAct
             case DeviceLinkActionNames.DeviceLinkChannelInitialized:
                 updateStore((s) => {
                     return {
-                        ...s, inviteCode: action.connectionId,
+                        ...s,
+                        inviteCode: `["${action.connectionId}","${action.identitySigningPublicKey}"]`,
                         deviceLinkStatus: DeviceLinkStatus.Started
                     };
                 });

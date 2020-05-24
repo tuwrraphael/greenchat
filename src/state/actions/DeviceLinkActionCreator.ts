@@ -1,7 +1,7 @@
 import { Store } from "../Store";
 import { Action } from "../lib/Action";
-import { SignallingClient } from "../../webrtc/SignallingClient";
 import { DeviceLinkStatus } from "../../models/DeviceLinkStatus";
+import { DeviceLinkService } from "../../device-linking/DeviceLinkService";
 
 export enum DeviceLinkActionNames {
     DeviceLinkChannelInitialized = "DeviceLinkChannelInitialized",
@@ -10,7 +10,7 @@ export enum DeviceLinkActionNames {
 
 export class DeviceLinkChannelInitialized implements Action {
     readonly type = DeviceLinkActionNames.DeviceLinkChannelInitialized;
-    constructor(public connectionId: string) {
+    constructor(public connectionId: string, public identitySigningPublicKey: string) {
 
     }
 }
@@ -25,23 +25,18 @@ export class DeviceLinkStatusChanged implements Action {
 export type DeviceLinkActions = DeviceLinkChannelInitialized | DeviceLinkStatusChanged;
 
 export class DeviceLinkActionCreator {
-    constructor(private store: Store, private signallingClient: SignallingClient) {
+    constructor(private store: Store, private deviceLinkingService: DeviceLinkService) {
     }
 
     async startDeviceLinking() {
-        let deviceLinkChannel = await this.signallingClient.initializeDeviceLinkChannel(120000);
-        deviceLinkChannel.connectionHandler.addEventListener("datachannelopen", e => {
-            console.log("connected");
-        });
-        this.store.dispatch(new DeviceLinkChannelInitialized(deviceLinkChannel.connectionHandler.connectionId));
+        let res = await this.deviceLinkingService.startDeviceLinking();
+        this.store.dispatch(new DeviceLinkChannelInitialized(res.connectionId,
+            res.identitySigningPublicKey));
     }
 
-    async linkDevice(connectionId: string) {
+    async linkDevice(inviteCode: string) {
         try {
-            let deviceLinkChannel = await this.signallingClient.openDeviceLinkChannel(connectionId);
-            deviceLinkChannel.connectionHandler.addEventListener("datachannelopen", e => {
-                console.log("connected");
-            });
+            await this.deviceLinkingService.linkDevice(inviteCode);
         }
         catch (err) {
             this.store.dispatch(new DeviceLinkStatusChanged(DeviceLinkStatus.Error));
