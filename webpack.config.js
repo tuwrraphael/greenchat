@@ -1,4 +1,6 @@
 const HtmlWebpackPlugin = require('html-webpack-plugin');
+const LicenseWebpackPlugin = require('license-webpack-plugin').LicenseWebpackPlugin;
+
 const path = require('path');
 
 module.exports = {
@@ -27,13 +29,17 @@ module.exports = {
     },
     output: {
         path: path.resolve(__dirname, 'dist'),
-        filename: '[contenthash].bundle.js'
+        filename: '[contenthash].bundle.js',
+        publicPath: '/'
     },
-    plugins: [new HtmlWebpackPlugin({ base: "/", title: "Greenchat" })],
+    plugins: [new HtmlWebpackPlugin({ base: "/", title: "Greenchat" }),
+    new LicenseWebpackPlugin()],
     mode: "development",
     devServer: {
-        contentBase: path.join(__dirname, './'),
         compress: true,
-        port: 9000
+        port: 9000,
+        historyApiFallback: {
+            index: "/"
+        }
     }
 };

@@ -22,13 +22,15 @@
     "karma-sourcemap-loader": "^0.3.7",
     "karma-spec-reporter": "0.0.32",
     "karma-webpack": "^4.0.2",
+    "license-webpack-plugin": "^2.2.0",
     "ts-loader": "^7.0.2",
     "typescript": "^3.8.3",
     "webpack": "^4.43.0",
     "webpack-cli": "^3.3.11",
-    "webpack-dev-server": "^3.10.3"
+    "webpack-dev-server": "^3.11.0"
   },
   "dependencies": {
+    "2key-ratchet": "^1.0.17",
     "idb": "^5.0.2",
     "route-it": "^1.0.0"
   }
