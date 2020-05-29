@@ -1,10 +1,8 @@
 import { Router } from "route-it";
 import { FirstTimeInit } from "../components/first-time-init";
 import { Home } from "../components/home";
-import { Store } from "../state/Store";
-import { NotesActionCreator } from "../state/actions/NotesActionCreator";
 import { ServiceLocator } from "../ServiceLocator";
-import { LinkDevice } from "../components/link-device";
+import { LinkDevice } from "../components/device-linking/link-device";
 import { OpenSourceInfo } from "../components/open-source-info";
 
 export enum Paths {

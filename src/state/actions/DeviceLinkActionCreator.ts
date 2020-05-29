@@ -4,6 +4,7 @@ import { DeviceLinkStatus } from "../../models/DeviceLinkStatus";
 import { DeviceLinkService } from "../../device-linking/DeviceLinkService";
 
 export enum DeviceLinkActionNames {
+    DeviceLinkingInitialized = "DeviceLinkingInitialized",
     DeviceLinkChannelInitialized = "DeviceLinkChannelInitialized",
     DeviceLinkStatusChanged = "DeviceLinkStatusChanged"
 }
@@ -22,10 +23,21 @@ export class DeviceLinkStatusChanged implements Action {
     }
 }
 
-export type DeviceLinkActions = DeviceLinkChannelInitialized | DeviceLinkStatusChanged;
+export class DeviceLinkingInitialized implements Action {
+    readonly type = DeviceLinkActionNames.DeviceLinkingInitialized;
+    constructor() {
+
+    }
+}
+
+export type DeviceLinkActions = DeviceLinkChannelInitialized | DeviceLinkStatusChanged | DeviceLinkingInitialized;
 
 export class DeviceLinkActionCreator {
     constructor(private store: Store, private deviceLinkingService: DeviceLinkService) {
+    }
+
+    initializeDeviceLinking() {
+        this.store.dispatch(new DeviceLinkingInitialized());
     }
 
     async startDeviceLinking() {

@@ -6,6 +6,15 @@ import { DeviceLinkStatus } from "../../models/DeviceLinkStatus";
 export class DeviceLinkReducer implements Reducer<DeviceLinkState, DeviceLinkActions> {
     onDispatch(action: DeviceLinkActions, updateStore: (a: (s: DeviceLinkState) => DeviceLinkState) => void): void {
         switch (action.type) {
+            case DeviceLinkActionNames.DeviceLinkingInitialized:
+                updateStore((s) => {
+                    return {
+                        ...s,
+                        inviteCode: null,
+                        deviceLinkStatus: DeviceLinkStatus.Initialized
+                    };
+                });
+                break;
             case DeviceLinkActionNames.DeviceLinkChannelInitialized:
                 updateStore((s) => {
                     return {

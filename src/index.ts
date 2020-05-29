@@ -27,7 +27,7 @@ async function run() {
             signallingConnected: false,
             notes: { notes: [] },
             deviceLink: {
-                deviceLinkStatus: DeviceLinkStatus.Uninitialized,
+                deviceLinkStatus: null,
                 inviteCode: null
             }
         }
