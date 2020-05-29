@@ -3,11 +3,27 @@ import { openDB, IDBPDatabase } from "idb";
 import { LogPersistence } from "../append-only-log/LogPersistence";
 import { LogMessage } from "../append-only-log/LogMessage";
 import { AppendOnlyLogMetadata } from "../append-only-log/AppendOnlyLogMetadata";
+import { DeviceLinkIdentity } from "../device-linking/DeviceLinkService";
 
 const AppendOnlyLogMessages = "AppendOnlyLogMessages";
 const AppendOnlyLogs = "AppendOnlyLogs";
+const ApplicationSettings = "ApplicationSettings";
 
 export class GreenchatDatabase implements LogPersistence {
+    async getDeviceLinkIdentity() {
+        let storedId = await this.db.get(ApplicationSettings, "deviceLinkIdentity");
+        if (null == storedId) {
+            return null;
+        }
+        let model = new DeviceLinkIdentity();
+        model.id = storedId.id;
+        return model;
+    }
+    async storeDeviceLinkIdentity(id: DeviceLinkIdentity) {
+        const tx = this.db.transaction(ApplicationSettings, "readwrite");
+        await tx.store.put({ id: id.id, key: "deviceLinkIdentity" });
+        await tx.done;
+    }
     async getAppendOnlyLog(logId: string): Promise<AppendOnlyLogMetadata> {
         let log = await this.db.get(AppendOnlyLogs, logId);
         return {
@@ -44,15 +60,23 @@ export class GreenchatDatabase implements LogPersistence {
     }
     db: IDBPDatabase<unknown>;
     async initialize() {
-        this.db = await openDB("greenchat-dbv2", 2, {
+        this.db = await openDB("greenchat-dbv2", 5, {
             upgrade(db, oldVersion: number, newVersion: number) {
-                if ([1, 2].indexOf(oldVersion) > -1 && [2, 3].indexOf(newVersion) > -1) {
-                    db.deleteObjectStore(AppendOnlyLogMessages);
-                    db.deleteObjectStore(AppendOnlyLogs);
+                if (oldVersion < 5) {
+                    if (oldVersion > 3) {
+                        db.deleteObjectStore(ApplicationSettings);
+                    }
+                    db.createObjectStore(ApplicationSettings, { keyPath: "key" });
                 }
-                let store = db.createObjectStore(AppendOnlyLogMessages, { keyPath: ["logId", "hash"] });
-                store.createIndex("logId", "logId");
-                db.createObjectStore(AppendOnlyLogs, { keyPath: "id" });
+                if (oldVersion < 3) {
+                    if (oldVersion > 0) {
+                        db.deleteObjectStore(AppendOnlyLogMessages);
+                        db.deleteObjectStore(AppendOnlyLogs);
+                    }
+                    let store = db.createObjectStore(AppendOnlyLogMessages, { keyPath: ["logId", "hash"] });
+                    store.createIndex("logId", "logId");
+                    db.createObjectStore(AppendOnlyLogs, { keyPath: "id" });
+                }
             },
         });
     }

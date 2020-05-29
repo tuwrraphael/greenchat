@@ -38,10 +38,10 @@ async function run() {
 
     const messageEncoder = new MessageEncoder();
     const localAppendOnlyLogService = new LocalAppendOnlyLogService(db, messageEncoder);
-    const deviceLinkService = new DeviceLinkService(signallingClient);
+    const deviceLinkService = new DeviceLinkService(signallingClient, db);
 
     const routingActionCreator = new RoutingActionCreator(router);
-    const initializationActionCreator = new InitializationActionCreator(store, localAppendOnlyLogService, routingActionCreator);
+    const initializationActionCreator = new InitializationActionCreator(store, localAppendOnlyLogService, routingActionCreator, deviceLinkService);
     const notesActionCreator = new NotesActionCreator(store, localAppendOnlyLogService, messageEncoder);
     const signallingActionCreator = new SignallingActionCreator(store, signallingClient);
     const deviceLinkActionCreator = new DeviceLinkActionCreator(store, deviceLinkService);

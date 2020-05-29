@@ -3,15 +3,26 @@ import { LocalAppendOnlyLogService } from "../../append-only-log/LocalAppendOnly
 import { Store } from "../Store";
 import { MessageTypes } from "../../message-encoding/MessageTypes";
 import { TakeNote } from "./NotesActionCreator";
+import { DeviceLinkService } from "../../device-linking/DeviceLinkService";
+
+interface InitToken {
+    require(): void;
+}
+
 export class InitializationActionCreator {
-    constructor(private store: Store, private localAppendOnlyLogService: LocalAppendOnlyLogService, private routingActionCreator: RoutingActionCreator) {
+
+    constructor(private store: Store,
+        private localAppendOnlyLogService: LocalAppendOnlyLogService,
+        private routingActionCreator: RoutingActionCreator,
+        private deviceLinkService: DeviceLinkService) {
+
     }
-    async initializeApplication() {
+
+    private async initializeAppendOnlyLog(token: InitToken) {
         let appendOnlyLogCreated = await this.localAppendOnlyLogService.appendOnlyLogCreated("local");
         if (!appendOnlyLogCreated) {
-            this.routingActionCreator.navigateFirstTimeInit();
+            token.require();
             await this.localAppendOnlyLogService.create("local");
-            this.routingActionCreator.navigateHome();
         } else {
             let log = await this.localAppendOnlyLogService.get("local");
             for await (let entry of log.getAll()) {
@@ -21,6 +32,31 @@ export class InitializationActionCreator {
                     this.store.dispatch(new TakeNote(msg.content));
                 }
             }
+        }
+    }
+
+    private async initializeDeviceLinking(token: InitToken) {
+        if (!await this.deviceLinkService.isInitialized()) {
+            token.require();
+            await this.deviceLinkService.initialize();
+        }
+    }
+
+    async initializeApplication() {
+        let initNavigated = false;
+        let token = {
+            require: () => {
+                if (!initNavigated) {
+                    initNavigated = true;
+                    this.routingActionCreator.navigateFirstTimeInit();
+                }
+            }
+        };
+
+        await this.initializeAppendOnlyLog(token);
+        await this.initializeDeviceLinking(token);
+        if (initNavigated) {
+            this.routingActionCreator.navigateHome();
         }
     }
 }
