@@ -3,13 +3,26 @@ import { openDB, IDBPDatabase } from "idb";
 import { LogPersistence } from "../append-only-log/LogPersistence";
 import { LogMessage } from "../append-only-log/LogMessage";
 import { AppendOnlyLogMetadata } from "../append-only-log/AppendOnlyLogMetadata";
-import { DeviceLinkIdentity } from "../device-linking/DeviceLinkService";
+import { DeviceLinkIdentity } from "../device-linking/DeviceLinkIdentity";
+import { LinkedDevice } from "../device-linking/LinkedDevice";
 
 const AppendOnlyLogMessages = "AppendOnlyLogMessages";
 const AppendOnlyLogs = "AppendOnlyLogs";
 const ApplicationSettings = "ApplicationSettings";
+const LinkedDevices = "LinkedDevices";
 
 export class GreenchatDatabase implements LogPersistence {
+    async getLinkedDevices(): Promise<LinkedDevice[]> {
+        let stored = await this.db.getAll(LinkedDevices);
+        let devices = (stored).map(d => LinkedDevice.fromJSON(d));
+        return Promise.all(devices);
+    }
+    async storeLinkedDevice(linked: LinkedDevice) {
+        let serialized = await linked.toJSON();
+        const tx = this.db.transaction(LinkedDevices, "readwrite");
+        await tx.store.put(serialized);
+        await tx.done;
+    }
     async getDeviceLinkIdentity() {
         let storedId = await this.db.get(ApplicationSettings, "deviceLinkIdentity");
         if (null == storedId) {
@@ -60,8 +73,11 @@ export class GreenchatDatabase implements LogPersistence {
     }
     db: IDBPDatabase<unknown>;
     async initialize() {
-        this.db = await openDB("greenchat-dbv2", 5, {
+        this.db = await openDB("greenchat-dbv2", 6, {
             upgrade(db, oldVersion: number, newVersion: number) {
+                if (oldVersion < 6) {
+                    db.createObjectStore(LinkedDevices, { keyPath: "deviceId" });
+                }
                 if (oldVersion < 5) {
                     if (oldVersion > 3) {
                         db.deleteObjectStore(ApplicationSettings);

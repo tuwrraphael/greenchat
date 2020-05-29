@@ -2,25 +2,22 @@ import { SignallingClient } from "../webrtc/SignallingClient";
 import { DeviceLinkSession } from "./DeviceLinkSession";
 import { GreenchatDatabase } from "../database/GreenchatDatabase";
 import { uuid } from "../utils/uuid";
-
-export class DeviceLinkIdentity {
-    id: string;
-}
+import { DeviceLinkIdentity } from "./DeviceLinkIdentity";
+import { LinkedDevice } from "./LinkedDevice";
+import { link } from "fs";
 
 export class DeviceLinkService {
+    private deviceLinkIdentity: DeviceLinkIdentity;
+    private linkedDevices: LinkedDevice[];
 
     constructor(private signallingClient: SignallingClient,
         private db: GreenchatDatabase) {
-
     }
 
     async startDeviceLinking() {
-        let id = await this.db.getDeviceLinkIdentity();
         let deviceLinkChannel = await this.signallingClient.initializeDeviceLinkChannel(120000);
-        let session = new DeviceLinkSession(deviceLinkChannel.rtcDataChannel, id.id, "test-linking-device");
-        session.addEventListener("devicelinksuccess", m => {
-            console.log("success", m);
-        });
+        let session = new DeviceLinkSession(deviceLinkChannel.rtcDataChannel, this.deviceLinkIdentity.id, "test-linking-device");
+        session.addEventListener("devicelinksuccess", async m => await this.deviceLinkSuccess((m as CustomEvent).detail as LinkedDevice));
         let res = await session.initiate();
         return {
             connectionId: deviceLinkChannel.connectionHandler.connectionId,
@@ -29,22 +26,30 @@ export class DeviceLinkService {
     }
 
     async linkDevice(inviteCode: string) {
-        let id = await this.db.getDeviceLinkIdentity();
         let [connectionId, identitySigningPublicKey]: [string, string] = JSON.parse(inviteCode);
         let deviceLinkChannel = await this.signallingClient.openDeviceLinkChannel(connectionId);
-        let session = new DeviceLinkSession(deviceLinkChannel.rtcDataChannel, id.id, "test-new-device", identitySigningPublicKey);
-        session.addEventListener("devicelinksuccess", m => {
-            console.log("success", m);
-        });
+        let session = new DeviceLinkSession(deviceLinkChannel.rtcDataChannel, this.deviceLinkIdentity.id, "test-new-device", identitySigningPublicKey);
+        session.addEventListener("devicelinksuccess", async m => await this.deviceLinkSuccess((m as CustomEvent).detail as LinkedDevice));
     }
 
-    async isInitialized() {
-        return await this.db.getDeviceLinkIdentity() != null;
+    async deviceLinkSuccess(d: LinkedDevice) {
+        let linked = this.linkedDevices.find(l => d.deviceId == l.deviceId);
+        if (linked) {
+            linked.updateLink(d);
+        } else {
+            linked = d;
+            this.linkedDevices.push(d);
+        }
+        await this.db.storeLinkedDevice(linked);
     }
 
     async initialize() {
-        let id = new DeviceLinkIdentity();
-        id.id = uuid();
-        await this.db.storeDeviceLinkIdentity(id);
+        this.deviceLinkIdentity = await this.db.getDeviceLinkIdentity();
+        if (null == this.deviceLinkIdentity) {
+            let id = new DeviceLinkIdentity();
+            id.id = uuid();
+            await this.db.storeDeviceLinkIdentity(id);
+        }
+        this.linkedDevices = await this.db.getLinkedDevices();
     }
 }

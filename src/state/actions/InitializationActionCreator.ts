@@ -35,13 +35,6 @@ export class InitializationActionCreator {
         }
     }
 
-    private async initializeDeviceLinking(token: InitToken) {
-        if (!await this.deviceLinkService.isInitialized()) {
-            token.require();
-            await this.deviceLinkService.initialize();
-        }
-    }
-
     async initializeApplication() {
         let initNavigated = false;
         let token = {
@@ -54,7 +47,7 @@ export class InitializationActionCreator {
         };
 
         await this.initializeAppendOnlyLog(token);
-        await this.initializeDeviceLinking(token);
+        await this.deviceLinkService.initialize();
         if (initNavigated) {
             this.routingActionCreator.navigateHome();
         }

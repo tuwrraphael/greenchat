@@ -1,21 +1,22 @@
 import { Identity, PreKeyBundleProtocol, PreKeyMessageProtocol, AsymmetricRatchet, ECPublicKey, MessageSignedProtocol } from "2key-ratchet";
 import { toBase64UrlSafe } from "../utils/toBase64UrlSafe";
 import { fromBase64UrlSafe } from "../utils/fromBase64UrlSafe";
+import { LinkedDevice } from "./LinkedDevice";
+
 export class DeviceLinkSession extends EventTarget {
     private readonly MSG_PREKEYBUNDLE = 0;
     private readonly MSG_PREKEY_LOCALDETAILS = 1;
     private readonly MSG_LOCALDETAILS = 2;
     private identity: Identity;
     private listener: (m: MessageEvent) => void;
-    private asymmetricRatchet: AsymmetricRatchet;
-    private otherLogId: string;
-    private otherDeviceId: string;
+    private linkedDevice : LinkedDevice;
     constructor(private rtcDataChannel: RTCDataChannel,
         private deviceId: string,
         private logId: string,
         private identitySigningPublicKey?: string) {
         super();
         this.attachMessageHandler();
+        this.linkedDevice = new LinkedDevice();
     }
     private attachMessageHandler() {
         this.listener = (m: MessageEvent): void => {
@@ -53,7 +54,7 @@ export class DeviceLinkSession extends EventTarget {
     }
     private async sendLocalDetails(isPreKey: boolean) {
         let enc = new TextEncoder();
-        let encrypted = await (await this.asymmetricRatchet.encrypt(enc.encode(JSON.stringify({
+        let encrypted = await (await this.linkedDevice.asymmetricRatchet.encrypt(enc.encode(JSON.stringify({
             deviceId: this.deviceId,
             logId: this.logId
         })))).exportProto();
@@ -63,21 +64,18 @@ export class DeviceLinkSession extends EventTarget {
         this.rtcDataChannel.send(msg);
     }
     private async getDeviceDetails(protocol: MessageSignedProtocol) {
-        let otherLogIdBytes = await this.asymmetricRatchet.decrypt(protocol);
+        let otherLogIdBytes = await this.linkedDevice.asymmetricRatchet.decrypt(protocol);
         let decoder = new TextDecoder();
         let payload = decoder.decode(otherLogIdBytes);
         let { deviceId, logId }: { deviceId: string, logId: string } = JSON.parse(payload);
-        this.otherLogId = logId;
-        this.otherDeviceId = deviceId;
+        this.linkedDevice.logId = logId;
+        this.linkedDevice.name = deviceId;
+        this.linkedDevice.deviceId = deviceId;
     }
     private endSession() {
-        this.rtcDataChannel.removeEventListener("message", this.listener);
+        this.rtcDataChannel.removeEventListener("message", this.listener);        
         this.dispatchEvent(new CustomEvent("devicelinksuccess", {
-            detail: {
-                otherLogId: this.otherLogId,
-                otherDeviceId: this.otherDeviceId,
-                asymmetricRatchet: this.asymmetricRatchet
-            }
+            detail: this.linkedDevice
         }));
     }
     private async onmessage(data: ArrayBuffer) {
@@ -89,14 +87,14 @@ export class DeviceLinkSession extends EventTarget {
                 const bundle = await PreKeyBundleProtocol.importProto(data);
                 this.identity = await Identity.create(1, 1);
                 if (await bundle.preKeySigned.verify(await ECPublicKey.importKey(fromBase64UrlSafe(this.identitySigningPublicKey), "ECDSA"))) {
-                    this.asymmetricRatchet = await AsymmetricRatchet.create(this.identity, bundle);
+                    this.linkedDevice.asymmetricRatchet = await AsymmetricRatchet.create(this.identity, bundle);
                     await this.sendLocalDetails(true);
                 }
                 break;
             }
             case this.MSG_PREKEY_LOCALDETAILS: {
                 let preKeyMessageProtocol = await PreKeyMessageProtocol.importProto(data);
-                this.asymmetricRatchet = await AsymmetricRatchet.create(this.identity, preKeyMessageProtocol);
+                this.linkedDevice.asymmetricRatchet = await AsymmetricRatchet.create(this.identity, preKeyMessageProtocol);
                 await this.getDeviceDetails(preKeyMessageProtocol.signedMessage);
                 await this.sendLocalDetails(false);
                 this.endSession();
