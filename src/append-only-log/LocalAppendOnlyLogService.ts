@@ -30,11 +30,6 @@ export class LocalAppendOnlyLogService {
         return logId;
     }
 
-    async get(logId: string) {
-        let appendOnlyLog = await this.persistence.getAppendOnlyLog(logId);
-        return new LocalAppendOnlyLog(appendOnlyLog.privateKey, logId, appendOnlyLog.sequence, this.persistence, this.messageEncoder);
-    }
-
     async requireFirstTimeInit() {
         return null == await this.persistence.getAppendOnlyLogState();
     }
@@ -51,5 +46,10 @@ export class LocalAppendOnlyLogService {
 
     getCurrentLogId() {
         return this.appendOnlyLogState.currentLogId;
+    }
+
+    async getCurrentLog() {
+        let appendOnlyLog = await this.persistence.getAppendOnlyLog(this.appendOnlyLogState.currentLogId);
+        return new LocalAppendOnlyLog(appendOnlyLog.privateKey, this.appendOnlyLogState.currentLogId, appendOnlyLog.sequence, this.persistence, this.messageEncoder);
     }
 }

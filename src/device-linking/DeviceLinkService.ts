@@ -5,6 +5,7 @@ import { uuid } from "../utils/uuid";
 import { DeviceLinkIdentity } from "./DeviceLinkIdentity";
 import { LinkedDevice } from "./LinkedDevice";
 import { LocalAppendOnlyLogService } from "../append-only-log/LocalAppendOnlyLogService";
+import { MessageEncryptor } from "../models/MessageEncryptor";
 
 export class DeviceLinkService {
     private deviceLinkIdentity: DeviceLinkIdentity;
@@ -52,5 +53,17 @@ export class DeviceLinkService {
             await this.db.storeDeviceLinkIdentity(id);
         }
         this.linkedDevices = await this.db.getLinkedDevices();
+    }
+
+    getMessageEncryptors(): MessageEncryptor[] {
+        return this.linkedDevices.map(l => {
+            return {
+                encrypt: async payload => {
+                    let enc = await l.asymmetricRatchet.encrypt(payload);
+                    await this.db.storeLinkedDevice(l);
+                    return await enc.exportProto();
+                }
+            };
+        });
     }
 }

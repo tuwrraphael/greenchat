@@ -11,11 +11,12 @@ const AppendOnlyLogMessages = "AppendOnlyLogMessages";
 const AppendOnlyLogs = "AppendOnlyLogs";
 const ApplicationSettings = "ApplicationSettings";
 const LinkedDevices = "LinkedDevices";
+const Notes = "Notes";
 
 export class GreenchatDatabase implements LogPersistence {
     async storeAppendOnlyLogState(appendOnlyLogState: AppendOnlyLogState): Promise<void> {
         const tx = this.db.transaction(ApplicationSettings, "readwrite");
-        await tx.store.put({ currentLogId : appendOnlyLogState.currentLogId, key: "appendOnlyLogState" });
+        await tx.store.put({ currentLogId: appendOnlyLogState.currentLogId, key: "appendOnlyLogState" });
         await tx.done;
     }
     async getAppendOnlyLogState(): Promise<AppendOnlyLogState> {
@@ -66,7 +67,7 @@ export class GreenchatDatabase implements LogPersistence {
         if (null == log.last) {
             return null;
         }
-        let msgData = await this.db.get(AppendOnlyLogMessages, log.last);
+        let msgData = await this.db.get(AppendOnlyLogMessages, [logId, log.last]);
         return new LogMessage(msgData.content, msgData.hash, msgData.previous, msgData.signature, msgData.timestamp, msgData.sequence);
     }
     async storeMessages(logId: string, messages: LogMessage[]): Promise<boolean> {
@@ -88,8 +89,11 @@ export class GreenchatDatabase implements LogPersistence {
     }
     db: IDBPDatabase<unknown>;
     async initialize() {
-        this.db = await openDB("greenchat-dbv2", 7, {
+        this.db = await openDB("greenchat-dbv2", 8, {
             upgrade(db, oldVersion: number, newVersion: number) {
+                if (oldVersion < 8) {
+                    db.createObjectStore(Notes, { keyPath: "id" });
+                }
                 if (oldVersion < 6) {
                     db.createObjectStore(LinkedDevices, { keyPath: "deviceId" });
                 }
