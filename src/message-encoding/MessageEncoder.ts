@@ -1,6 +1,7 @@
 import { MessageTypes } from "./MessageTypes";
 import { MessageModifier } from "./MessageModifier";
 import { MessageEncryptor } from "./MessageEncryptor";
+import { Note } from "../notes/Note";
 
 export class MessageEncoder {
     private encoder: TextEncoder;
@@ -18,8 +19,8 @@ export class MessageEncoder {
         return res.buffer;
     }
 
-    async encodeNote(content: string, encryptor: MessageEncryptor): Promise<ArrayBuffer> {
-        let msg = { content, type: MessageTypes.Note };
+    async encodeNote(note: Note, encryptor: MessageEncryptor): Promise<ArrayBuffer> {
+        let msg = { id : note.id, content: note.content, type: MessageTypes.Note };
         let encoded = this.encoder.encode(JSON.stringify(msg));
         let buffer = new Uint8Array(await encryptor.encrypt(encoded));
         let res = new Uint8Array(buffer.length + 2);

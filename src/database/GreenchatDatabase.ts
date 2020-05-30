@@ -7,6 +7,8 @@ import { DeviceLinkIdentity } from "../device-linking/DeviceLinkIdentity";
 import { LinkedDevice } from "../device-linking/LinkedDevice";
 import { AppendOnlyLogState } from "../append-only-log/LocalAppendOnlyLogService";
 import { DeviceLinkPersistence } from "../device-linking/DeviceLinkPersistence";
+import { NotesPersistence } from "../notes/NotesPersistence";
+import { Note } from "../notes/Note";
 
 const AppendOnlyLogMessages = "AppendOnlyLogMessages";
 const AppendOnlyLogs = "AppendOnlyLogs";
@@ -14,7 +16,22 @@ const ApplicationSettings = "ApplicationSettings";
 const LinkedDevices = "LinkedDevices";
 const Notes = "Notes";
 
-export class GreenchatDatabase implements LogPersistence, DeviceLinkPersistence {
+export class GreenchatDatabase implements LogPersistence, DeviceLinkPersistence, NotesPersistence {
+    async storeNote(note: Note): Promise<void> {
+        const tx = this.db.transaction(Notes, "readwrite");
+        await tx.store.put({ id: note.id, content: note.content });
+        await tx.done;
+    }
+    async getAllNotes(): Promise<Note[]> {
+        let stored = await this.db.getAll(Notes);
+        let devices = (stored).map(d => {
+            let note = new Note();
+            note.id = d.id;
+            note.content = d.content;
+            return note;
+        });
+        return devices;
+    }
     async storeAppendOnlyLogState(appendOnlyLogState: AppendOnlyLogState): Promise<void> {
         const tx = this.db.transaction(ApplicationSettings, "readwrite");
         await tx.store.put({ currentLogId: appendOnlyLogState.currentLogId, key: "appendOnlyLogState" });

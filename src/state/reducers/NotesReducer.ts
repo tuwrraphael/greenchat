@@ -8,9 +8,16 @@ export class NotesReducer implements Reducer<NotesSubState, NotesActions> {
             case NotesActionNames.TakeNote: {
                 updateStore((s: NotesSubState) => {
                     let notes = s.notes || [];
-                    notes.push(action.content);
+                    notes.push(action.note.content);
                     return { ...s, notes };
-                })
+                });
+                break;
+            }
+            case NotesActionNames.NotesLoaded: {
+                updateStore((s: NotesSubState) => {
+                    return { ...s, notes: action.notes.map(n => n.content) };
+                });
+                break;
             }
         }
     }

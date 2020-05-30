@@ -40,6 +40,7 @@ export class Home extends HTMLElement {
         });
         this.subscription = this.store.subscribe("notes", state => this.applyStoreState(state));
         this.applyStoreState(this.store.state);
+        this.notesActionCreator.loadNotes();
     }
 
     private applyStoreState(state: State) {

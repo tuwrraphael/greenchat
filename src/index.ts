@@ -42,7 +42,7 @@ async function run() {
 
     const routingActionCreator = new RoutingActionCreator(router);
     const initializationActionCreator = new InitializationActionCreator(store, localAppendOnlyLogService, routingActionCreator, deviceLinkService);
-    const notesActionCreator = new NotesActionCreator(store, localAppendOnlyLogService, messageEncoder, deviceLinkService);
+    const notesActionCreator = new NotesActionCreator(store, localAppendOnlyLogService, messageEncoder, deviceLinkService, db);
     const signallingActionCreator = new SignallingActionCreator(store, signallingClient);
     const deviceLinkActionCreator = new DeviceLinkActionCreator(store, deviceLinkService);
 
