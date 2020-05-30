@@ -1,4 +1,4 @@
-import { DeviceLinkStatus } from "../models/DeviceLinkStatus";
+import { DeviceLinkStatus } from "../device-linking/DeviceLinkStatus";
 
 export interface NotesSubState {
     notes: string[];

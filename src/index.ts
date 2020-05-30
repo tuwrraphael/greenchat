@@ -13,7 +13,7 @@ import { SignallingClient } from "./webrtc/SignallingClient";
 import { GlobalReducer } from "./state/reducers/GlobalReducer";
 import { SignallingActionCreator } from "./state/actions/SignallingActionCreator";
 import { DeviceLinkActionCreator } from "./state/actions/DeviceLinkActionCreator";
-import { DeviceLinkStatus } from "./models/DeviceLinkStatus";
+import { DeviceLinkStatus } from "./device-linking/DeviceLinkStatus";
 import { DeviceLinkReducer } from "./state/reducers/DeviceLinkReducer";
 import { DeviceLinkService } from "./device-linking/DeviceLinkService";
 
@@ -38,7 +38,7 @@ async function run() {
 
     const messageEncoder = new MessageEncoder();
     const localAppendOnlyLogService = new LocalAppendOnlyLogService(db, messageEncoder);
-    const deviceLinkService = new DeviceLinkService(signallingClient, db);
+    const deviceLinkService = new DeviceLinkService(signallingClient, db, localAppendOnlyLogService);
 
     const routingActionCreator = new RoutingActionCreator(router);
     const initializationActionCreator = new InitializationActionCreator(store, localAppendOnlyLogService, routingActionCreator, deviceLinkService);

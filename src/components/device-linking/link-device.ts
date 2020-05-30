@@ -2,7 +2,7 @@ import template from "./link-device.html";
 import { Store } from "../../state/Store";
 import { ServiceLocator } from "../../ServiceLocator";
 import { DeviceLinkActionCreator } from "../../state/actions/DeviceLinkActionCreator";
-import { DeviceLinkStatus } from "../../models/DeviceLinkStatus";
+import { DeviceLinkStatus } from "../../device-linking/DeviceLinkStatus";
 import { State } from "../../state/State";
 import { StartDeviceLinking } from "./start-device-linking";
 

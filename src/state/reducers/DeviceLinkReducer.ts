@@ -1,7 +1,7 @@
 import { Reducer } from "../lib/Reducer";
 import { DeviceLinkState } from "../State";
 import { DeviceLinkActions, DeviceLinkActionNames } from "../actions/DeviceLinkActionCreator";
-import { DeviceLinkStatus } from "../../models/DeviceLinkStatus";
+import { DeviceLinkStatus } from "../../device-linking/DeviceLinkStatus";
 
 export class DeviceLinkReducer implements Reducer<DeviceLinkState, DeviceLinkActions> {
     onDispatch(action: DeviceLinkActions, updateStore: (a: (s: DeviceLinkState) => DeviceLinkState) => void): void {

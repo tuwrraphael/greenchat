@@ -5,6 +5,7 @@ import { LogMessage } from "../append-only-log/LogMessage";
 import { AppendOnlyLogMetadata } from "../append-only-log/AppendOnlyLogMetadata";
 import { DeviceLinkIdentity } from "../device-linking/DeviceLinkIdentity";
 import { LinkedDevice } from "../device-linking/LinkedDevice";
+import { AppendOnlyLogState } from "../append-only-log/LocalAppendOnlyLogService";
 
 const AppendOnlyLogMessages = "AppendOnlyLogMessages";
 const AppendOnlyLogs = "AppendOnlyLogs";
@@ -12,6 +13,20 @@ const ApplicationSettings = "ApplicationSettings";
 const LinkedDevices = "LinkedDevices";
 
 export class GreenchatDatabase implements LogPersistence {
+    async storeAppendOnlyLogState(appendOnlyLogState: AppendOnlyLogState): Promise<void> {
+        const tx = this.db.transaction(ApplicationSettings, "readwrite");
+        await tx.store.put({ currentLogId : appendOnlyLogState.currentLogId, key: "appendOnlyLogState" });
+        await tx.done;
+    }
+    async getAppendOnlyLogState(): Promise<AppendOnlyLogState> {
+        let storedState = await this.db.get(ApplicationSettings, "appendOnlyLogState");
+        if (null == storedState) {
+            return null;
+        }
+        let model = new AppendOnlyLogState();
+        model.currentLogId = storedState.currentLogId;
+        return model;
+    }
     async getLinkedDevices(): Promise<LinkedDevice[]> {
         let stored = await this.db.getAll(LinkedDevices);
         let devices = (stored).map(d => LinkedDevice.fromJSON(d));
@@ -73,7 +88,7 @@ export class GreenchatDatabase implements LogPersistence {
     }
     db: IDBPDatabase<unknown>;
     async initialize() {
-        this.db = await openDB("greenchat-dbv2", 6, {
+        this.db = await openDB("greenchat-dbv2", 7, {
             upgrade(db, oldVersion: number, newVersion: number) {
                 if (oldVersion < 6) {
                     db.createObjectStore(LinkedDevices, { keyPath: "deviceId" });
@@ -84,7 +99,7 @@ export class GreenchatDatabase implements LogPersistence {
                     }
                     db.createObjectStore(ApplicationSettings, { keyPath: "key" });
                 }
-                if (oldVersion < 3) {
+                if (oldVersion < 7) {
                     if (oldVersion > 0) {
                         db.deleteObjectStore(AppendOnlyLogMessages);
                         db.deleteObjectStore(AppendOnlyLogs);

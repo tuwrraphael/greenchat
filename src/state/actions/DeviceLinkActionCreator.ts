@@ -1,6 +1,6 @@
 import { Store } from "../Store";
 import { Action } from "../lib/Action";
-import { DeviceLinkStatus } from "../../models/DeviceLinkStatus";
+import { DeviceLinkStatus } from "../../device-linking/DeviceLinkStatus";
 import { DeviceLinkService } from "../../device-linking/DeviceLinkService";
 
 export enum DeviceLinkActionNames {
