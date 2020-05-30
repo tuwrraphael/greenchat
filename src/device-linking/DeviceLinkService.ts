@@ -1,18 +1,18 @@
 import { SignallingClient } from "../webrtc/SignallingClient";
 import { DeviceLinkSession } from "./DeviceLinkSession";
-import { GreenchatDatabase } from "../database/GreenchatDatabase";
 import { uuid } from "../utils/uuid";
 import { DeviceLinkIdentity } from "./DeviceLinkIdentity";
 import { LinkedDevice } from "./LinkedDevice";
 import { LocalAppendOnlyLogService } from "../append-only-log/LocalAppendOnlyLogService";
-import { MessageEncryptor } from "../models/MessageEncryptor";
+import { MessageEncryptor } from "../message-encoding/MessageEncryptor";
+import { DeviceLinkPersistence } from "./DeviceLinkPersistence";
 
 export class DeviceLinkService {
     private deviceLinkIdentity: DeviceLinkIdentity;
     private linkedDevices: LinkedDevice[];
 
     constructor(private signallingClient: SignallingClient,
-        private db: GreenchatDatabase,
+        private persistence: DeviceLinkPersistence,
         private localAppendOnlyLogService: LocalAppendOnlyLogService) {
     }
 
@@ -42,17 +42,17 @@ export class DeviceLinkService {
             linked = d;
             this.linkedDevices.push(d);
         }
-        await this.db.storeLinkedDevice(linked);
+        await this.persistence.storeLinkedDevice(linked);
     }
 
     async initialize() {
-        this.deviceLinkIdentity = await this.db.getDeviceLinkIdentity();
+        this.deviceLinkIdentity = await this.persistence.getDeviceLinkIdentity();
         if (null == this.deviceLinkIdentity) {
             let id = new DeviceLinkIdentity();
             id.id = uuid();
-            await this.db.storeDeviceLinkIdentity(id);
+            await this.persistence.storeDeviceLinkIdentity(id);
         }
-        this.linkedDevices = await this.db.getLinkedDevices();
+        this.linkedDevices = await this.persistence.getLinkedDevices();
     }
 
     getMessageEncryptors(): MessageEncryptor[] {
@@ -60,7 +60,7 @@ export class DeviceLinkService {
             return {
                 encrypt: async payload => {
                     let enc = await l.asymmetricRatchet.encrypt(payload);
-                    await this.db.storeLinkedDevice(l);
+                    await this.persistence.storeLinkedDevice(l);
                     return await enc.exportProto();
                 }
             };

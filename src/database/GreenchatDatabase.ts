@@ -6,6 +6,7 @@ import { AppendOnlyLogMetadata } from "../append-only-log/AppendOnlyLogMetadata"
 import { DeviceLinkIdentity } from "../device-linking/DeviceLinkIdentity";
 import { LinkedDevice } from "../device-linking/LinkedDevice";
 import { AppendOnlyLogState } from "../append-only-log/LocalAppendOnlyLogService";
+import { DeviceLinkPersistence } from "../device-linking/DeviceLinkPersistence";
 
 const AppendOnlyLogMessages = "AppendOnlyLogMessages";
 const AppendOnlyLogs = "AppendOnlyLogs";
@@ -13,7 +14,7 @@ const ApplicationSettings = "ApplicationSettings";
 const LinkedDevices = "LinkedDevices";
 const Notes = "Notes";
 
-export class GreenchatDatabase implements LogPersistence {
+export class GreenchatDatabase implements LogPersistence, DeviceLinkPersistence {
     async storeAppendOnlyLogState(appendOnlyLogState: AppendOnlyLogState): Promise<void> {
         const tx = this.db.transaction(ApplicationSettings, "readwrite");
         await tx.store.put({ currentLogId: appendOnlyLogState.currentLogId, key: "appendOnlyLogState" });
