@@ -1,5 +1,6 @@
 import { iceConfig } from "./config";
 import { SignallingClient } from "./SignallingClient";
+
 export class PeerConnectionHandler {
     private rtcConnection: RTCPeerConnection;
     private resolveInit: () => void;
@@ -22,7 +23,12 @@ export class PeerConnectionHandler {
     rejectConenctionRequest(reason: string) {
         this.rejectConnectionRequest(reason);
     }
+
     initiateChannel(timeout: number): Promise<RTCDataChannel> {
+        return this.initiateConnection(timeout);
+    }
+
+    private initiateConnection(timeout: number, hubId?: string) {
         this.rtcConnection = new RTCPeerConnection({ ...iceConfig });
         let dataChannel = this.rtcConnection.createDataChannel("sendChannel");
         this.rtcConnection.onicecandidate = ({ candidate }) => {
@@ -31,7 +37,12 @@ export class PeerConnectionHandler {
             }
         };
         this.rtcConnection.createOffer().then(offer => {
-            this.signallingClient.initiateConnection(this.connectionId, timeout, offer);
+            if (hubId) {
+                this.signallingClient.connectHub(hubId, this.connectionId, timeout, offer);
+            }
+            else {
+                this.signallingClient.initiateConnection(this.connectionId, timeout, offer);
+            }
             this.rtcConnection.setLocalDescription(offer);
         });
         let promise = new Promise<RTCDataChannel>((resolve, reject) => {
@@ -49,6 +60,11 @@ export class PeerConnectionHandler {
         });
         return promise;
     }
+
+    connectHub(hubId: string, timeout: number): Promise<RTCDataChannel> {
+        return this.initiateConnection(timeout, hubId);
+    }
+
     openChannel(): Promise<RTCDataChannel> {
         this.rtcConnection = new RTCPeerConnection({ ...iceConfig });
         this.rtcConnection.onicecandidate = ({ candidate }) => {

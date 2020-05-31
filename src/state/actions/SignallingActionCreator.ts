@@ -1,6 +1,8 @@
 import { Store } from "../Store";
 import { Action } from "../lib/Action";
 import { SignallingClient } from "../../webrtc/SignallingClient";
+import { NoHubsFoundException } from "../../webrtc/NoHubsFoundException";
+import { ChannelInitialization } from "../../webrtc/ChannelInitialization";
 
 export enum SignallingActionNames {
     SignallingConnectionChanged = "SignallingConnectionChanged"
@@ -25,7 +27,19 @@ export class SignallingActionCreator {
         });
     }
 
-    startSignalling() {
-        this.signallingClient.connect();
+    async startSignalling() {
+        await this.signallingClient.connect();
+        let connector = this.signallingClient.getHubConnector();
+        try {
+            let channel = await connector.connectHub();
+        }
+        catch (e) {
+            if (e instanceof NoHubsFoundException) {
+                let hub = this.signallingClient.createHub();
+                hub.addEventListener("onincomingclient", e => {
+                    let channelInitialization: ChannelInitialization = (e as CustomEvent).detail;
+                });
+            }
+        }
     }
 }
